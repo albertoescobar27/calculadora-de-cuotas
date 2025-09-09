@@ -28,12 +28,6 @@ Una aplicación web interactiva y completa para calcular las cuotas mensuales de
 - **Formato de Moneda Local:** Los valores se formatean automáticamente a Lempiras Hondureñas (Lps)
 - **Animaciones Suaves:** Transiciones y efectos visuales para una mejor experiencia
 
-## 🚀 Demo
-
-![Screenshot de la aplicación](screenshot.png)
-
-*Captura de pantalla mostrando la interfaz principal de la calculadora*
-
 ## 📋 Requisitos
 
 - Navegador web moderno (Chrome, Firefox, Safari, Edge)
