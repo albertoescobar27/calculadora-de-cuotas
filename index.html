@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Cuotas de Terrenos</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Exportar a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -24,7 +27,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
@@ -61,10 +64,7 @@
             font-size: 1.1em;
         }
 
-        input[type="number"],
-        input[type="text"],
-        select,
-        textarea {
+        input[type="number"], input[type="text"], select, textarea {
             width: 100%;
             padding: 15px;
             border: 2px solid #e0e0e0;
@@ -73,10 +73,7 @@
             transition: all 0.3s ease;
         }
 
-        input[type="number"]:focus,
-        input[type="text"]:focus,
-        select:focus,
-        textarea:focus {
+        input[type="number"]:focus, input[type="text"]:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -100,7 +97,7 @@
             font-weight: 600;
         }
 
-        .currency+input {
+        .currency + input {
             padding-left: 50px;
         }
 
@@ -165,6 +162,14 @@
             box-shadow: 0 8px 16px rgba(39, 174, 96, 0.3);
         }
 
+        .btn-download.pdf {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-download.pdf:hover {
+            box-shadow: 0 8px 16px rgba(231, 76, 60, 0.3);
+        }
+
         .results {
             margin-top: 30px;
             padding: 30px;
@@ -183,7 +188,6 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -255,11 +259,10 @@
             background: white;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        th,
-        td {
+        th, td {
             padding: 12px;
             text-align: center;
             border-bottom: 1px solid #e0e0e0;
@@ -336,15 +339,15 @@
                 margin: 0;
                 border-radius: 10px;
             }
-
+            
             .form-container {
                 padding: 20px;
             }
-
+            
             .header {
                 padding: 20px;
             }
-
+            
             .header h1 {
                 font-size: 1.8em;
                 line-height: 1.2;
@@ -358,15 +361,12 @@
                 font-size: 1em;
             }
 
-            input[type="number"],
-            input[type="text"],
-            select,
-            textarea {
+            input[type="number"], input[type="text"], select, textarea {
                 font-size: 1em;
                 padding: 12px;
             }
 
-            .currency+input {
+            .currency + input {
                 padding-left: 45px;
             }
 
@@ -380,8 +380,7 @@
                 padding: 16px;
             }
 
-            .btn-clear,
-            .btn-download {
+            .btn-clear, .btn-download {
                 font-size: 1em;
                 padding: 12px 20px;
             }
@@ -425,8 +424,7 @@
                 font-size: 0.9em;
             }
 
-            th,
-            td {
+            th, td {
                 padding: 10px 8px;
                 white-space: nowrap;
             }
@@ -476,8 +474,7 @@
                 min-width: 450px;
             }
 
-            th,
-            td {
+            th, td {
                 padding: 8px 6px;
             }
 
@@ -506,14 +503,11 @@
                 font-size: 1.4em;
             }
 
-            input[type="number"],
-            input[type="text"],
-            select,
-            textarea {
+            input[type="number"], input[type="text"], select, textarea {
                 padding: 10px;
             }
 
-            .currency+input {
+            .currency + input {
                 padding-left: 40px;
             }
         }
@@ -646,6 +640,9 @@
                     <p>Descarga el resumen del financiamiento y la tabla de amortización completa</p>
                     <button type="button" class="btn-download" onclick="downloadExcel()">
                         📊 Descargar Excel
+                    </button>
+                    <button type="button" class="btn-download pdf" onclick="downloadPDF()">
+                        📄 Descargar PDF
                     </button>
                 </div>
 
@@ -998,6 +995,163 @@
             // Descargar archivo
             const fileName = `Financiamiento_Terreno_${new Date().toISOString().split('T')[0]}.xlsx`;
             XLSX.writeFile(wb, fileName);
+        }
+
+        function downloadPDF() {
+            if (!calculationData || !calculationData.monthlyPayment) {
+                alert('Por favor realice el cálculo primero');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+            const margin = 40;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+
+            // Utilidades
+            const addHeader = (title) => {
+                doc.setFillColor(46, 62, 80);
+                doc.rect(0, 0, pageWidth, 60, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.text('Calculadora de Cuotas de Terrenos', margin, 38);
+                doc.setFontSize(12);
+                doc.text(title, pageWidth - margin, 38, { align: 'right' });
+                doc.setTextColor(0, 0, 0);
+            };
+
+            const addFooter = () => {
+                const str = 'Página ' + doc.internal.getNumberOfPages();
+                doc.setFontSize(10);
+                doc.setTextColor(120);
+                doc.text(str, pageWidth - margin, pageHeight - 15, { align: 'right' });
+                doc.setTextColor(0, 0, 0);
+            };
+
+            const addSectionTitle = (text, y) => {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(13);
+                doc.text(text, margin, y);
+                doc.setFont('helvetica', 'normal');
+            };
+
+            // Página 1: Resumen
+            addHeader('Resumen');
+            let cursorY = 90;
+
+            // Título
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.text('Resumen del Financiamiento', margin, cursorY);
+            cursorY += 18;
+
+            // Datos en dos columnas
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+
+            const left = margin;
+            const right = pageWidth / 2 + 10;
+            const lineHeight = 16;
+
+            const putKV = (x, y, k, v) => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(k, x, y);
+                doc.setFont('helvetica', 'normal');
+                doc.text(v, x + 170, y);
+            };
+
+            // Columna izquierda
+            putKV(left, cursorY, 'Precio por m²:', `Lps ${formatNumber(calculationData.pricePerMeter)}`); cursorY += lineHeight;
+            putKV(left, cursorY, 'Metros cuadrados:', `${formatNumber(calculationData.squareMeters)}`); cursorY += lineHeight;
+            putKV(left, cursorY, 'Precio base:', `Lps ${formatNumber(calculationData.basePrice)}`); cursorY += lineHeight;
+
+            // Condición (si aplica)
+            let conditionStr = 'N/A';
+            if (calculationData.conditionValue > 0 && calculationData.conditionDescription) {
+                const sign = calculationData.conditionType === 'add' ? '+' : '-';
+                conditionStr = `${calculationData.conditionDescription} (${sign} Lps ${formatNumber(calculationData.conditionValue)})`;
+            }
+            putKV(left, cursorY, 'Condición especial:', conditionStr); cursorY += lineHeight;
+
+            // Columna derecha
+            let rightY = 106;
+            putKV(right, rightY, 'Precio total terreno:', `Lps ${formatNumber(calculationData.totalPrice)}`); rightY += lineHeight;
+            putKV(right, rightY, 'Prima:', `Lps ${formatNumber(calculationData.downPayment)}`); rightY += lineHeight;
+            putKV(right, rightY, 'Monto a financiar:', `Lps ${formatNumber(calculationData.financeAmount)}`); rightY += lineHeight;
+            putKV(right, rightY, 'Plazo:', `${calculationData.years} años (${calculationData.months} meses)`); rightY += lineHeight;
+
+            if (calculationData.includeInterest && calculationData.interestRate > 0) {
+                putKV(right, rightY, 'Tasa de interés anual:', `${calculationData.interestRate}%`); rightY += lineHeight;
+                putKV(right, rightY, 'Intereses totales:', `Lps ${formatNumber(calculationData.totalInterest)}`); rightY += lineHeight;
+                putKV(right, rightY, 'Total a pagar:', `Lps ${formatNumber(calculationData.grandTotal)}`); rightY += lineHeight;
+            }
+
+            // Cuota mensual grande
+            cursorY = Math.max(cursorY, rightY) + 20;
+            addSectionTitle('Cuota Mensual', cursorY);
+            cursorY += 6;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(22);
+            doc.setTextColor(39, 174, 96);
+            doc.text(`Lps ${formatNumber(calculationData.monthlyPayment)}`, margin, cursorY + 24);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text(`por ${calculationData.months} meses`, margin, cursorY + 42);
+
+            // Fecha
+            doc.setFontSize(10);
+            doc.setTextColor(120);
+            doc.text(`Fecha de generación: ${new Date().toLocaleDateString('es-HN')}`, margin, pageHeight - 40);
+            doc.setTextColor(0, 0, 0);
+
+            addFooter();
+
+            // Página 2+: Tabla de amortización completa
+            doc.addPage();
+            addHeader('Tabla de amortización');
+
+            const amortizationData = generateFullAmortizationTable(
+                calculationData.financeAmount,
+                calculationData.monthlyPayment,
+                calculationData.interestRate,
+                calculationData.includeInterest,
+                calculationData.months
+            );
+
+            const head = [['Mes', 'Cuota', 'Capital', 'Interés', 'Saldo']];
+            const body = amortizationData.map(r => ([
+                r.mes,
+                `Lps ${formatNumber(r.cuota)}`,
+                `Lps ${formatNumber(r.capital)}`,
+                `Lps ${formatNumber(r.interes)}`,
+                `Lps ${formatNumber(r.saldo)}`
+            ]));
+
+            doc.autoTable({
+                head,
+                body,
+                startY: 90,
+                margin: { left: margin, right: margin },
+                styles: { font: 'helvetica', fontSize: 10, halign: 'right' },
+                headStyles: { fillColor: [44, 62, 80], halign: 'center' },
+                columnStyles: {
+                    0: { halign: 'center' },
+                    1: { halign: 'right' },
+                    2: { halign: 'right' },
+                    3: { halign: 'right' },
+                    4: { halign: 'right' },
+                },
+                didDrawPage: () => {
+                    addHeader('Tabla de amortización');
+                    addFooter();
+                }
+            });
+
+            const fileName = `Financiamiento_Terreno_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
         }
 
         function clearForm() {
