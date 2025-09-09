@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,7 +28,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
@@ -64,7 +65,10 @@
             font-size: 1.1em;
         }
 
-        input[type="number"], input[type="text"], select, textarea {
+        input[type="number"],
+        input[type="text"],
+        select,
+        textarea {
             width: 100%;
             padding: 15px;
             border: 2px solid #e0e0e0;
@@ -73,7 +77,10 @@
             transition: all 0.3s ease;
         }
 
-        input[type="number"]:focus, input[type="text"]:focus, select:focus, textarea:focus {
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -97,7 +104,7 @@
             font-weight: 600;
         }
 
-        .currency + input {
+        .currency+input {
             padding-left: 50px;
         }
 
@@ -188,6 +195,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -259,10 +267,11 @@
             background: white;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             text-align: center;
             border-bottom: 1px solid #e0e0e0;
@@ -339,15 +348,15 @@
                 margin: 0;
                 border-radius: 10px;
             }
-            
+
             .form-container {
                 padding: 20px;
             }
-            
+
             .header {
                 padding: 20px;
             }
-            
+
             .header h1 {
                 font-size: 1.8em;
                 line-height: 1.2;
@@ -361,12 +370,15 @@
                 font-size: 1em;
             }
 
-            input[type="number"], input[type="text"], select, textarea {
+            input[type="number"],
+            input[type="text"],
+            select,
+            textarea {
                 font-size: 1em;
                 padding: 12px;
             }
 
-            .currency + input {
+            .currency+input {
                 padding-left: 45px;
             }
 
@@ -380,7 +392,8 @@
                 padding: 16px;
             }
 
-            .btn-clear, .btn-download {
+            .btn-clear,
+            .btn-download {
                 font-size: 1em;
                 padding: 12px 20px;
             }
@@ -424,7 +437,8 @@
                 font-size: 0.9em;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 10px 8px;
                 white-space: nowrap;
             }
@@ -474,7 +488,8 @@
                 min-width: 450px;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 8px 6px;
             }
 
@@ -503,16 +518,20 @@
                 font-size: 1.4em;
             }
 
-            input[type="number"], input[type="text"], select, textarea {
+            input[type="number"],
+            input[type="text"],
+            select,
+            textarea {
                 padding: 10px;
             }
 
-            .currency + input {
+            .currency+input {
                 padding-left: 40px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -542,7 +561,8 @@
                     <div class="condition-row">
                         <div class="form-group">
                             <label for="conditionDescription">Descripción de la Condición</label>
-                            <textarea id="conditionDescription" placeholder="Ej: Lote esquinero, Vista al parque, Descuento por pronto pago, etc."></textarea>
+                            <textarea id="conditionDescription"
+                                placeholder="Ej: Lote esquinero, Vista al parque, Descuento por pronto pago, etc."></textarea>
                         </div>
                         <div class="form-group">
                             <label for="conditionValue">Valor (Lps)</label>
@@ -589,41 +609,41 @@
 
             <div id="results" class="results">
                 <h3>📊 Resumen del Financiamiento</h3>
-                
+
                 <div id="conditionApplied" class="condition-applied" style="display: none;">
                     <div class="condition-text" id="conditionText"></div>
                 </div>
-                
+
                 <div class="result-item">
                     <span class="result-label">Precio Base del Terreno:</span>
                     <span class="result-value" id="basePrice">Lps 0.00</span>
                 </div>
-                
+
                 <div class="result-item" id="conditionRow" style="display: none;">
                     <span class="result-label" id="conditionLabel">Condición Aplicada:</span>
                     <span class="result-value" id="conditionAmount">Lps 0.00</span>
                 </div>
-                
+
                 <div class="result-item">
                     <span class="result-label">Precio Total del Terreno:</span>
                     <span class="result-value" id="totalPrice">Lps 0.00</span>
                 </div>
-                
+
                 <div class="result-item">
                     <span class="result-label">Prima Pagada:</span>
                     <span class="result-value" id="downPaymentResult">Lps 0.00</span>
                 </div>
-                
+
                 <div class="result-item">
                     <span class="result-label">Monto a Financiar:</span>
                     <span class="result-value" id="financeAmount">Lps 0.00</span>
                 </div>
-                
+
                 <div class="result-item" id="interestTotalRow" style="display: none;">
                     <span class="result-label">Total de Intereses:</span>
                     <span class="result-value" id="totalInterest">Lps 0.00</span>
                 </div>
-                
+
                 <div class="result-item" id="grandTotalRow" style="display: none;">
                     <span class="result-label">Total a Pagar:</span>
                     <span class="result-value" id="grandTotal">Lps 0.00</span>
@@ -687,7 +707,7 @@
         }
 
         // Toggle para mostrar/ocultar campo de interés
-        document.getElementById('includeInterest').addEventListener('change', function() {
+        document.getElementById('includeInterest').addEventListener('change', function () {
             const interestGroup = document.getElementById('interestGroup');
             interestGroup.style.display = this.checked ? 'block' : 'none';
         });
@@ -707,9 +727,9 @@
         }
 
         // Manejar envío del formulario
-        document.getElementById('calculatorForm').addEventListener('submit', function(e) {
+        document.getElementById('calculatorForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const pricePerMeter = parseFloat(document.getElementById('pricePerMeter').value) || 0;
             const squareMeters = parseFloat(document.getElementById('squareMeters').value) || 0;
             const conditionDescription = document.getElementById('conditionDescription').value.trim();
@@ -722,7 +742,7 @@
 
             // Validaciones
             let isValid = true;
-            
+
             isValid &= validateInput(
                 document.getElementById('pricePerMeter'),
                 document.getElementById('priceError'),
@@ -818,12 +838,12 @@
 
                 const action = conditionType === 'add' ? 'suma' : 'resta';
                 const sign = conditionType === 'add' ? '+' : '-';
-                
+
                 conditionText.textContent = `${conditionDescription} (${action} ${formatCurrency(conditionValue)})`;
                 conditionLabel.textContent = conditionDescription + ':';
                 conditionAmount.textContent = `${sign} ${formatCurrency(conditionValue)}`;
                 conditionAmount.style.color = conditionType === 'add' ? '#e74c3c' : '#27ae60';
-                
+
                 conditionApplied.style.display = 'block';
                 conditionRow.style.display = 'flex';
             } else {
@@ -883,13 +903,13 @@
             for (let month = 1; month <= months && balance > 0; month++) {
                 const interestPayment = includeInterest ? balance * monthlyRate : 0;
                 let principalPayment = monthlyPayment - interestPayment;
-                
+
                 // Ajustar último pago si es necesario
                 if (balance < principalPayment) {
                     principalPayment = balance;
                     monthlyPayment = principalPayment + interestPayment;
                 }
-                
+
                 balance = Math.max(0, balance - principalPayment);
 
                 amortizationData.push({
@@ -1037,7 +1057,8 @@
                 doc.setFont('helvetica', 'normal');
             };
 
-            // Página 1: Resumen
+            
+            // Página 1: Resumen (Una sola columna)
             addHeader('Resumen');
             let cursorY = 90;
 
@@ -1045,63 +1066,65 @@
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(18);
             doc.text('Resumen del Financiamiento', margin, cursorY);
-            cursorY += 18;
+            cursorY += 25;
 
-            // Datos en dos columnas
+            // Función para agregar key-value en una columna
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
 
-            const left = margin;
-            const right = pageWidth / 2 + 10;
-            const lineHeight = 16;
-
-            const putKV = (x, y, k, v) => {
+            const addKV = (k, v) => {
                 doc.setFont('helvetica', 'bold');
-                doc.text(k, x, y);
+                doc.text(k, margin, cursorY);
                 doc.setFont('helvetica', 'normal');
-                doc.text(v, x + 170, y);
+                doc.text(v, margin + 200, cursorY);
+                cursorY += 18;
             };
 
-            // Columna izquierda
-            putKV(left, cursorY, 'Precio por m²:', `Lps ${formatNumber(calculationData.pricePerMeter)}`); cursorY += lineHeight;
-            putKV(left, cursorY, 'Metros cuadrados:', `${formatNumber(calculationData.squareMeters)}`); cursorY += lineHeight;
-            putKV(left, cursorY, 'Precio base:', `Lps ${formatNumber(calculationData.basePrice)}`); cursorY += lineHeight;
+            // Datos principales
+            addKV('Precio por m²:', `Lps ${formatNumber(calculationData.pricePerMeter)}`);
+            addKV('Metros cuadrados:', `${formatNumber(calculationData.squareMeters)}`);
+            addKV('Precio base:', `Lps ${formatNumber(calculationData.basePrice)}`);
 
-            // Condición (si aplica)
+            // Condición especial
             let conditionStr = 'N/A';
             if (calculationData.conditionValue > 0 && calculationData.conditionDescription) {
                 const sign = calculationData.conditionType === 'add' ? '+' : '-';
                 conditionStr = `${calculationData.conditionDescription} (${sign} Lps ${formatNumber(calculationData.conditionValue)})`;
             }
-            putKV(left, cursorY, 'Condición especial:', conditionStr); cursorY += lineHeight;
+            addKV('Condición especial:', conditionStr);
 
-            // Columna derecha
-            let rightY = 106;
-            putKV(right, rightY, 'Precio total terreno:', `Lps ${formatNumber(calculationData.totalPrice)}`); rightY += lineHeight;
-            putKV(right, rightY, 'Prima:', `Lps ${formatNumber(calculationData.downPayment)}`); rightY += lineHeight;
-            putKV(right, rightY, 'Monto a financiar:', `Lps ${formatNumber(calculationData.financeAmount)}`); rightY += lineHeight;
-            putKV(right, rightY, 'Plazo:', `${calculationData.years} años (${calculationData.months} meses)`); rightY += lineHeight;
+            addKV('Precio total terreno:', `Lps ${formatNumber(calculationData.totalPrice)}`);
+            addKV('Prima:', `Lps ${formatNumber(calculationData.downPayment)}`);
+            addKV('Monto a financiar:', `Lps ${formatNumber(calculationData.financeAmount)}`);
+            addKV('Plazo:', `${calculationData.years} años (${calculationData.months} meses)`);
 
+            // Intereses si aplica
             if (calculationData.includeInterest && calculationData.interestRate > 0) {
-                putKV(right, rightY, 'Tasa de interés anual:', `${calculationData.interestRate}%`); rightY += lineHeight;
-                putKV(right, rightY, 'Intereses totales:', `Lps ${formatNumber(calculationData.totalInterest)}`); rightY += lineHeight;
-                putKV(right, rightY, 'Total a pagar:', `Lps ${formatNumber(calculationData.grandTotal)}`); rightY += lineHeight;
+                addKV('Tasa de interés anual:', `${calculationData.interestRate}%`);
+                addKV('Intereses totales:', `Lps ${formatNumber(calculationData.totalInterest)}`);
+                addKV('Total a pagar:', `Lps ${formatNumber(calculationData.grandTotal)}`);
             }
 
-            // Cuota mensual grande
-            cursorY = Math.max(cursorY, rightY) + 20;
-            addSectionTitle('Cuota Mensual', cursorY);
-            cursorY += 6;
+            // Espacio y cuota mensual destacada
+            cursorY += 15;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text('Cuota Mensual', margin, cursorY);
+
+            cursorY += 30;
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(22);
             doc.setTextColor(39, 174, 96);
-            doc.text(`Lps ${formatNumber(calculationData.monthlyPayment)}`, margin, cursorY + 24);
+            doc.text(`Lps ${formatNumber(calculationData.monthlyPayment)}`, margin, cursorY);
             doc.setTextColor(0, 0, 0);
+
+            // Periodo de pagos debajo
+            cursorY += 20;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
-            doc.text(`por ${calculationData.months} meses`, margin, cursorY + 42);
+            doc.text(`por ${calculationData.months} meses`, margin, cursorY);
 
-            // Fecha
+            // Fecha al pie
             doc.setFontSize(10);
             doc.setTextColor(120);
             doc.text(`Fecha de generación: ${new Date().toLocaleDateString('es-HN')}`, margin, pageHeight - 40);
@@ -1159,19 +1182,20 @@
             document.getElementById('results').classList.remove('show');
             document.getElementById('interestGroup').style.display = 'none';
             calculationData = {};
-            
+
             // Limpiar estilos de error
             const inputs = document.querySelectorAll('input[type="number"], input[type="text"], textarea');
             const errors = document.querySelectorAll('.error');
-            
+
             inputs.forEach(input => input.style.borderColor = '#e0e0e0');
             errors.forEach(error => error.style.display = 'none');
         }
 
         // Agregar efectos de entrada suaves
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             document.querySelector('.container').style.animation = 'slideIn 0.8s ease';
         });
     </script>
 </body>
+
 </html>
