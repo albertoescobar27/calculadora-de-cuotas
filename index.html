@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Cuotas de Terrenos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        input[type="number"], input[type="text"], select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .currency {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-weight: 600;
+        }
+
+        .currency + input {
+            padding-left: 50px;
+        }
+
+        .condition-section {
+            background: #e8f5e8;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #27ae60;
+            margin: 25px 0;
+        }
+
+        .condition-section h3 {
+            color: #27ae60;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .condition-row {
+            display: grid;
+            grid-template-columns: 1fr 150px 120px;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .btn-calculate {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(39, 174, 96, 0.3);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .result-value {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .condition-applied {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .condition-applied .condition-text {
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .monthly-payment {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .monthly-payment .amount {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .payment-table {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-clear {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear:hover {
+            background: #c0392b;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .interest-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .interest-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .interest-toggle input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #27ae60;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .condition-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏡 Calculadora de Cuotas de Terrenos</h1>
+            <p>Calcula fácilmente las cuotas mensuales para la compra de tu terreno</p>
+        </div>
+
+        <div class="form-container">
+            <form id="calculatorForm">
+                <div class="form-group">
+                    <label for="pricePerMeter">Precio por Metro Cuadrado (Lps)</label>
+                    <div class="input-group">
+                        <span class="currency">Lps</span>
+                        <input type="number" id="pricePerMeter" step="0.01" min="0" required>
+                    </div>
+                    <div class="error" id="priceError">Por favor ingrese un precio válido</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="squareMeters">Metros Cuadrados del Terreno</label>
+                    <input type="number" id="squareMeters" step="0.01" min="0" required>
+                    <div class="error" id="metersError">Por favor ingrese los metros cuadrados</div>
+                </div>
+
+                <div class="condition-section">
+                    <h3>🏷️ Condiciones Especiales del Lote</h3>
+                    <div class="condition-row">
+                        <div class="form-group">
+                            <label for="conditionDescription">Descripción de la Condición</label>
+                            <textarea id="conditionDescription" placeholder="Ej: Lote esquinero, Vista al parque, Descuento por pronto pago, etc."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="conditionValue">Valor (Lps)</label>
+                            <input type="number" id="conditionValue" step="0.01" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="conditionType">Tipo</label>
+                            <select id="conditionType">
+                                <option value="add">➕ Sumar</option>
+                                <option value="subtract">➖ Restar</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="downPayment">Prima o Adelanto (Lps)</label>
+                    <div class="input-group">
+                        <span class="currency">Lps</span>
+                        <input type="number" id="downPayment" step="0.01" min="0" value="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="years">Tiempo de Financiamiento (Años)</label>
+                    <input type="number" id="years" min="1" max="30" required>
+                    <div class="error" id="yearsError">Por favor ingrese un tiempo válido (1-30 años)</div>
+                </div>
+
+                <div class="interest-section">
+                    <div class="interest-toggle">
+                        <input type="checkbox" id="includeInterest">
+                        <label for="includeInterest">Incluir tasa de interés anual</label>
+                    </div>
+                    <div class="form-group" id="interestGroup" style="display: none;">
+                        <label for="interestRate">Tasa de Interés Anual (%)</label>
+                        <input type="number" id="interestRate" step="0.01" min="0" max="50" value="12">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-calculate">💰 Calcular Cuotas</button>
+                <button type="button" class="btn-clear" onclick="clearForm()">🗑️ Limpiar</button>
+            </form>
+
+            <div id="results" class="results">
+                <h3>📊 Resumen del Financiamiento</h3>
+                
+                <div id="conditionApplied" class="condition-applied" style="display: none;">
+                    <div class="condition-text" id="conditionText"></div>
+                </div>
+                
+                <div class="result-item">
+                    <span class="result-label">Precio Base del Terreno:</span>
+                    <span class="result-value" id="basePrice">Lps 0.00</span>
+                </div>
+                
+                <div class="result-item" id="conditionRow" style="display: none;">
+                    <span class="result-label" id="conditionLabel">Condición Aplicada:</span>
+                    <span class="result-value" id="conditionAmount">Lps 0.00</span>
+                </div>
+                
+                <div class="result-item">
+                    <span class="result-label">Precio Total del Terreno:</span>
+                    <span class="result-value" id="totalPrice">Lps 0.00</span>
+                </div>
+                
+                <div class="result-item">
+                    <span class="result-label">Prima Pagada:</span>
+                    <span class="result-value" id="downPaymentResult">Lps 0.00</span>
+                </div>
+                
+                <div class="result-item">
+                    <span class="result-label">Monto a Financiar:</span>
+                    <span class="result-value" id="financeAmount">Lps 0.00</span>
+                </div>
+                
+                <div class="result-item" id="interestTotalRow" style="display: none;">
+                    <span class="result-label">Total de Intereses:</span>
+                    <span class="result-value" id="totalInterest">Lps 0.00</span>
+                </div>
+                
+                <div class="result-item" id="grandTotalRow" style="display: none;">
+                    <span class="result-label">Total a Pagar:</span>
+                    <span class="result-value" id="grandTotal">Lps 0.00</span>
+                </div>
+
+                <div class="monthly-payment">
+                    <div>Cuota Mensual</div>
+                    <div class="amount" id="monthlyPayment">Lps 0.00</div>
+                    <div id="paymentPeriod">por 0 meses</div>
+                </div>
+
+                <div class="download-section">
+                    <h4>📥 Descargar Reporte Completo</h4>
+                    <p>Descarga el resumen del financiamiento y la tabla de amortización completa</p>
+                    <button type="button" class="btn-download" onclick="downloadExcel()">
+                        📊 Descargar Excel
+                    </button>
+                </div>
+
+                <div class="payment-table">
+                    <h4>📅 Tabla de Amortización (Primeros 12 meses)</h4>
+                    <table id="amortizationTable">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th>Cuota</th>
+                                <th>Capital</th>
+                                <th>Interés</th>
+                                <th>Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let calculationData = {};
+
+        // Formatear números como moneda
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-HN', {
+                style: 'currency',
+                currency: 'HNL',
+                minimumFractionDigits: 2
+            }).format(amount).replace('HNL', 'Lps');
+        }
+
+        // Formatear números sin símbolo de moneda
+        function formatNumber(number) {
+            return new Intl.NumberFormat('es-HN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(number);
+        }
+
+        // Toggle para mostrar/ocultar campo de interés
+        document.getElementById('includeInterest').addEventListener('change', function() {
+            const interestGroup = document.getElementById('interestGroup');
+            interestGroup.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Validación en tiempo real
+        function validateInput(input, errorElement, condition, message) {
+            if (condition) {
+                input.style.borderColor = '#e74c3c';
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                input.style.borderColor = '#e0e0e0';
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('calculatorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const pricePerMeter = parseFloat(document.getElementById('pricePerMeter').value) || 0;
+            const squareMeters = parseFloat(document.getElementById('squareMeters').value) || 0;
+            const conditionDescription = document.getElementById('conditionDescription').value.trim();
+            const conditionValue = parseFloat(document.getElementById('conditionValue').value) || 0;
+            const conditionType = document.getElementById('conditionType').value;
+            const downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
+            const years = parseInt(document.getElementById('years').value) || 0;
+            const includeInterest = document.getElementById('includeInterest').checked;
+            const interestRate = parseFloat(document.getElementById('interestRate').value) || 0;
+
+            // Validaciones
+            let isValid = true;
+            
+            isValid &= validateInput(
+                document.getElementById('pricePerMeter'),
+                document.getElementById('priceError'),
+                pricePerMeter <= 0,
+                'El precio por metro cuadrado debe ser mayor a 0'
+            );
+
+            isValid &= validateInput(
+                document.getElementById('squareMeters'),
+                document.getElementById('metersError'),
+                squareMeters <= 0,
+                'Los metros cuadrados deben ser mayor a 0'
+            );
+
+            isValid &= validateInput(
+                document.getElementById('years'),
+                document.getElementById('yearsError'),
+                years < 1 || years > 30,
+                'El tiempo debe estar entre 1 y 30 años'
+            );
+
+            if (!isValid) return;
+
+            // Cálculos
+            const basePrice = pricePerMeter * squareMeters;
+            let totalPrice = basePrice;
+
+            // Aplicar condición especial
+            if (conditionValue > 0) {
+                if (conditionType === 'add') {
+                    totalPrice += conditionValue;
+                } else {
+                    totalPrice -= conditionValue;
+                }
+            }
+
+            const financeAmount = totalPrice - downPayment;
+            const months = years * 12;
+
+            if (financeAmount <= 0) {
+                alert('La prima no puede ser mayor o igual al precio total del terreno');
+                return;
+            }
+
+            let monthlyPayment;
+            let totalInterest = 0;
+            let grandTotal = financeAmount;
+
+            if (includeInterest && interestRate > 0) {
+                const monthlyRate = interestRate / 100 / 12;
+                monthlyPayment = financeAmount * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+                totalInterest = (monthlyPayment * months) - financeAmount;
+                grandTotal = financeAmount + totalInterest;
+            } else {
+                monthlyPayment = financeAmount / months;
+            }
+
+            // Guardar datos para exportación
+            calculationData = {
+                pricePerMeter,
+                squareMeters,
+                basePrice,
+                conditionDescription,
+                conditionValue,
+                conditionType,
+                totalPrice,
+                downPayment,
+                financeAmount,
+                years,
+                months,
+                includeInterest,
+                interestRate,
+                monthlyPayment,
+                totalInterest,
+                grandTotal
+            };
+
+            // Mostrar resultados
+            document.getElementById('basePrice').textContent = formatCurrency(basePrice);
+            document.getElementById('totalPrice').textContent = formatCurrency(totalPrice);
+            document.getElementById('downPaymentResult').textContent = formatCurrency(downPayment);
+            document.getElementById('financeAmount').textContent = formatCurrency(financeAmount);
+            document.getElementById('monthlyPayment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('paymentPeriod').textContent = `por ${months} meses`;
+
+            // Mostrar condición aplicada
+            if (conditionValue > 0 && conditionDescription) {
+                const conditionApplied = document.getElementById('conditionApplied');
+                const conditionText = document.getElementById('conditionText');
+                const conditionRow = document.getElementById('conditionRow');
+                const conditionLabel = document.getElementById('conditionLabel');
+                const conditionAmount = document.getElementById('conditionAmount');
+
+                const action = conditionType === 'add' ? 'suma' : 'resta';
+                const sign = conditionType === 'add' ? '+' : '-';
+                
+                conditionText.textContent = `${conditionDescription} (${action} ${formatCurrency(conditionValue)})`;
+                conditionLabel.textContent = conditionDescription + ':';
+                conditionAmount.textContent = `${sign} ${formatCurrency(conditionValue)}`;
+                conditionAmount.style.color = conditionType === 'add' ? '#e74c3c' : '#27ae60';
+                
+                conditionApplied.style.display = 'block';
+                conditionRow.style.display = 'flex';
+            } else {
+                document.getElementById('conditionApplied').style.display = 'none';
+                document.getElementById('conditionRow').style.display = 'none';
+            }
+
+            // Mostrar/ocultar filas de interés
+            if (includeInterest && interestRate > 0) {
+                document.getElementById('interestTotalRow').style.display = 'flex';
+                document.getElementById('grandTotalRow').style.display = 'flex';
+                document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
+                document.getElementById('grandTotal').textContent = formatCurrency(grandTotal);
+            } else {
+                document.getElementById('interestTotalRow').style.display = 'none';
+                document.getElementById('grandTotalRow').style.display = 'none';
+            }
+
+            // Generar tabla de amortización
+            generateAmortizationTable(financeAmount, monthlyPayment, interestRate, includeInterest);
+
+            // Mostrar resultados
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        function generateAmortizationTable(principal, monthlyPayment, annualRate, includeInterest) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            let balance = principal;
+            const monthlyRate = includeInterest ? (annualRate / 100 / 12) : 0;
+
+            for (let month = 1; month <= Math.min(12, Math.ceil(principal / monthlyPayment)); month++) {
+                const interestPayment = includeInterest ? balance * monthlyRate : 0;
+                const principalPayment = monthlyPayment - interestPayment;
+                balance = Math.max(0, balance - principalPayment);
+
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${month}</td>
+                    <td>${formatCurrency(monthlyPayment)}</td>
+                    <td>${formatCurrency(principalPayment)}</td>
+                    <td>${formatCurrency(interestPayment)}</td>
+                    <td>${formatCurrency(balance)}</td>
+                `;
+
+                if (balance <= 0) break;
+            }
+        }
+
+        function generateFullAmortizationTable(principal, monthlyPayment, annualRate, includeInterest, months) {
+            const amortizationData = [];
+            let balance = principal;
+            const monthlyRate = includeInterest ? (annualRate / 100 / 12) : 0;
+
+            for (let month = 1; month <= months && balance > 0; month++) {
+                const interestPayment = includeInterest ? balance * monthlyRate : 0;
+                let principalPayment = monthlyPayment - interestPayment;
+                
+                // Ajustar último pago si es necesario
+                if (balance < principalPayment) {
+                    principalPayment = balance;
+                    monthlyPayment = principalPayment + interestPayment;
+                }
+                
+                balance = Math.max(0, balance - principalPayment);
+
+                amortizationData.push({
+                    mes: month,
+                    cuota: monthlyPayment,
+                    capital: principalPayment,
+                    interes: interestPayment,
+                    saldo: balance
+                });
+
+                if (balance <= 0) break;
+            }
+
+            return amortizationData;
+        }
+
+        function downloadExcel() {
+            if (!calculationData.monthlyPayment) {
+                alert('Por favor realice el cálculo primero');
+                return;
+            }
+
+            // Crear libro de trabajo
+            const wb = XLSX.utils.book_new();
+
+            // Hoja 1: Resumen del Financiamiento
+            const summaryData = [
+                ['RESUMEN DEL FINANCIAMIENTO DE TERRENO'],
+                [''],
+                ['Precio por Metro Cuadrado:', `Lps ${formatNumber(calculationData.pricePerMeter)}`],
+                ['Metros Cuadrados:', formatNumber(calculationData.squareMeters)],
+                ['Precio Base del Terreno:', `Lps ${formatNumber(calculationData.basePrice)}`],
+            ];
+
+            if (calculationData.conditionValue > 0 && calculationData.conditionDescription) {
+                const action = calculationData.conditionType === 'add' ? 'Suma' : 'Resta';
+                const sign = calculationData.conditionType === 'add' ? '+' : '-';
+                summaryData.push(
+                    [''],
+                    ['CONDICIÓN ESPECIAL:'],
+                    ['Descripción:', calculationData.conditionDescription],
+                    ['Valor:', `${sign} Lps ${formatNumber(calculationData.conditionValue)}`],
+                    ['Tipo:', action]
+                );
+            }
+
+            summaryData.push(
+                [''],
+                ['Precio Total del Terreno:', `Lps ${formatNumber(calculationData.totalPrice)}`],
+                ['Prima Pagada:', `Lps ${formatNumber(calculationData.downPayment)}`],
+                ['Monto a Financiar:', `Lps ${formatNumber(calculationData.financeAmount)}`],
+                [''],
+                ['TÉRMINOS DEL FINANCIAMIENTO:'],
+                ['Plazo:', `${calculationData.years} años (${calculationData.months} meses)`]
+            );
+
+            if (calculationData.includeInterest && calculationData.interestRate > 0) {
+                summaryData.push(
+                    ['Tasa de Interés Anual:', `${calculationData.interestRate}%`],
+                    ['Total de Intereses:', `Lps ${formatNumber(calculationData.totalInterest)}`],
+                    ['Total a Pagar:', `Lps ${formatNumber(calculationData.grandTotal)}`]
+                );
+            }
+
+            summaryData.push(
+                [''],
+                ['CUOTA MENSUAL:', `Lps ${formatNumber(calculationData.monthlyPayment)}`],
+                [''],
+                ['Fecha de Generación:', new Date().toLocaleDateString('es-HN')]
+            );
+
+            const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
+
+            // Hoja 2: Tabla de Amortización Completa
+            const amortizationData = generateFullAmortizationTable(
+                calculationData.financeAmount,
+                calculationData.monthlyPayment,
+                calculationData.interestRate,
+                calculationData.includeInterest,
+                calculationData.months
+            );
+
+            const tableData = [
+                ['TABLA DE AMORTIZACIÓN COMPLETA'],
+                [''],
+                ['Mes', 'Cuota Mensual', 'Pago a Capital', 'Pago de Interés', 'Saldo Pendiente']
+            ];
+
+            amortizationData.forEach(row => {
+                tableData.push([
+                    row.mes,
+                    formatNumber(row.cuota),
+                    formatNumber(row.capital),
+                    formatNumber(row.interes),
+                    formatNumber(row.saldo)
+                ]);
+            });
+
+            const ws2 = XLSX.utils.aoa_to_sheet(tableData);
+            XLSX.utils.book_append_sheet(wb, ws2, 'Amortización');
+
+            // Descargar archivo
+            const fileName = `Financiamiento_Terreno_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        function clearForm() {
+            document.getElementById('calculatorForm').reset();
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('interestGroup').style.display = 'none';
+            calculationData = {};
+            
+            // Limpiar estilos de error
+            const inputs = document.querySelectorAll('input[type="number"], input[type="text"], textarea');
+            const errors = document.querySelectorAll('.error');
+            
+            inputs.forEach(input => input.style.borderColor = '#e0e0e0');
+            errors.forEach(error => error.style.display = 'none');
+        }
+
+        // Agregar efectos de entrada suaves
+        window.addEventListener('load', function() {
+            document.querySelector('.container').style.animation = 'slideIn 0.8s ease';
+        });
+    </script>
+</body>
+</html>
