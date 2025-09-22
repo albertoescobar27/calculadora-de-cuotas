@@ -10,524 +10,90 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 2.2em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1em; }
+        .form-container { padding: 40px; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 1.1em; }
+        input[type="number"], input[type="text"], input[type="date"], select, textarea {
+            width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1.1em; transition: all 0.3s ease;
         }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+            outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-
-        .header h1 {
-            font-size: 2.2em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
-
-        .form-container {
-            padding: 40px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 1.1em;
-        }
-
-        input[type="number"],
-        input[type="text"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-        }
-
-        input[type="number"]:focus,
-        input[type="text"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-
-        .input-group {
-            position: relative;
-        }
-
-        .currency {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            font-weight: 600;
-        }
-
-        .currency+input {
-            padding-left: 50px;
-        }
-
-        .condition-section {
-            background: #e8f5e8;
-            padding: 25px;
-            border-radius: 10px;
-            border-left: 4px solid #27ae60;
-            margin: 25px 0;
-        }
-
-        .condition-section h3 {
-            color: #27ae60;
-            margin-bottom: 20px;
-            font-size: 1.3em;
-        }
-
-        .condition-row {
-            display: grid;
-            grid-template-columns: 1fr 150px 120px;
-            gap: 15px;
-            align-items: end;
-        }
-
-        .btn-calculate {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-
-        .btn-calculate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-download {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px 5px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-download:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(39, 174, 96, 0.3);
-        }
-
-        .btn-download.pdf {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-        }
-
-        .btn-download.pdf:hover {
-            box-shadow: 0 8px 16px rgba(231, 76, 60, 0.3);
-        }
-
-        .results {
-            margin-top: 30px;
-            padding: 30px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 10px;
-            display: none;
-        }
-
-        .results.show {
-            display: block;
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .result-item:last-child {
-            border-bottom: none;
-        }
-
-        .result-label {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .result-value {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #27ae60;
-        }
-
-        .condition-applied {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid #ffc107;
-        }
-
-        .condition-applied .condition-text {
-            font-weight: 600;
-            color: #856404;
-        }
-
-        .monthly-payment {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .monthly-payment .amount {
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 5px;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            line-height: 1.1;
-        }
-
-        .payment-table {
-            margin-top: 30px;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        th {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .btn-clear {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1em;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-clear:hover {
-            background: #c0392b;
-        }
-
-        .error {
-            color: #e74c3c;
-            font-size: 0.9em;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .interest-section {
-            margin-top: 20px;
-            padding: 20px;
-            background: #fff3cd;
-            border-radius: 8px;
-            border-left: 4px solid #ffc107;
-        }
-
-        .interest-toggle {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .interest-toggle input[type="checkbox"] {
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
-
-        .download-section {
-            text-align: center;
-            margin-top: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            border: 2px dashed #27ae60;
-        }
-
-        /* MEJORAS PARA MÓVILES */
+        textarea { resize: vertical; min-height: 60px; }
+        .input-group { position: relative; }
+        .currency { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-weight: 600; }
+        .currency+input { padding-left: 50px; }
+        .condition-section { background: #e8f5e8; padding: 25px; border-radius: 10px; border-left: 4px solid #27ae60; margin: 25px 0; }
+        .condition-section h3 { color: #27ae60; margin-bottom: 20px; font-size: 1.3em; }
+        .condition-row { display: grid; grid-template-columns: 1fr 150px 120px; gap: 15px; align-items: end; }
+        .btn-calculate { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-size: 1.2em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; }
+        .btn-calculate:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
+        .btn-download { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin: 10px 5px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(39, 174, 96, 0.3); }
+        .btn-download.pdf { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn-download.pdf:hover { box-shadow: 0 8px 16px rgba(231, 76, 60, 0.3); }
+        .results { margin-top: 30px; padding: 30px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 10px; display: none; }
+        .results.show { display: block; animation: slideIn 0.5s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #dee2e6; }
+        .result-item:last-child { border-bottom: none; }
+        .result-label { font-weight: 600; color: #2c3e50; }
+        .result-value { font-size: 1.2em; font-weight: 700; color: #27ae60; }
+        .condition-applied { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ffc107; }
+        .condition-applied .condition-text { font-weight: 600; color: #856404; }
+        .monthly-payment { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: center; }
+        .monthly-payment .amount { font-size: 2.5em; font-weight: 700; margin-bottom: 5px; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.1; }
+        .payment-table { margin-top: 30px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #e0e0e0; }
+        th { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; font-weight: 600; }
+        tr:hover { background-color: #f8f9fa; }
+        .btn-clear { background: #e74c3c; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-size: 1em; margin-top: 15px; transition: all 0.3s ease; }
+        .btn-clear:hover { background: #c0392b; }
+        .error { color: #e74c3c; font-size: 0.9em; margin-top: 5px; display: none; }
+        .interest-section { margin-top: 20px; padding: 20px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107; }
+        .interest-toggle { display: flex; align-items: center; margin-bottom: 15px; }
+        .interest-toggle input[type="checkbox"] { margin-right: 10px; transform: scale(1.2); }
+        .download-section { text-align: center; margin-top: 20px; padding: 20px; background: white; border-radius: 8px; border: 2px dashed #27ae60; }
+        /* Responsive */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .container {
-                margin: 0;
-                border-radius: 10px;
-            }
-
-            .form-container {
-                padding: 20px;
-            }
-
-            .header {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 1.8em;
-                line-height: 1.2;
-            }
-
-            .header p {
-                font-size: 1em;
-            }
-
-            label {
-                font-size: 1em;
-            }
-
-            input[type="number"],
-            input[type="text"],
-            select,
-            textarea {
-                font-size: 1em;
-                padding: 12px;
-            }
-
-            .currency+input {
-                padding-left: 45px;
-            }
-
-            .condition-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .btn-calculate {
-                font-size: 1.1em;
-                padding: 16px;
-            }
-
-            .btn-clear,
-            .btn-download {
-                font-size: 1em;
-                padding: 12px 20px;
-            }
-
-            .results {
-                padding: 20px;
-            }
-
-            .result-item {
-                padding: 12px 0;
-            }
-
-            .result-label {
-                font-size: 0.95em;
-            }
-
-            .result-value {
-                font-size: 1.1em;
-            }
-
-            /* Cuota mensual - FIX PRINCIPAL */
-            .monthly-payment {
-                padding: 15px;
-            }
-
-            .monthly-payment .amount {
-                font-size: 1.8em;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-                line-height: 1.2;
-                hyphens: auto;
-            }
-
-            .payment-table {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            table {
-                min-width: 500px;
-                font-size: 0.9em;
-            }
-
-            th,
-            td {
-                padding: 10px 8px;
-                white-space: nowrap;
-            }
-
-            .download-section {
-                padding: 15px;
-            }
+            body { padding: 10px; } .container { margin: 0; border-radius: 10px; }
+            .form-container { padding: 20px; } .header { padding: 20px; }
+            .header h1 { font-size: 1.8em; line-height: 1.2; } .header p { font-size: 1em; }
+            label { font-size: 1em; }
+            input[type="number"], input[type="text"], input[type="date"], select, textarea { font-size: 1em; padding: 12px; }
+            .currency+input { padding-left: 45px; } .condition-row { grid-template-columns: 1fr; gap: 10px; }
+            .btn-calculate { font-size: 1.1em; padding: 16px; } .btn-clear, .btn-download { font-size: 1em; padding: 12px 20px; }
+            .results { padding: 20px; } .result-item { padding: 12px 0; }
+            .result-label { font-size: 0.95em; } .result-value { font-size: 1.1em; }
+            .monthly-payment { padding: 15px; } .monthly-payment .amount { font-size: 1.8em; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.2; hyphens: auto; }
+            .payment-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            table { min-width: 600px; font-size: 0.9em; }
+            th, td { padding: 10px 8px; white-space: nowrap; } .download-section { padding: 15px; }
         }
-
-        /* Ajustes para pantallas muy pequeñas */
         @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.6em;
-            }
-
-            .form-container {
-                padding: 15px;
-            }
-
-            .results {
-                padding: 15px;
-            }
-
-            .result-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 5px;
-            }
-
-            .result-label {
-                margin-bottom: 5px;
-                font-size: 0.9em;
-            }
-
-            .result-value {
-                font-size: 1em;
-            }
-
-            /* Cuota mensual en pantallas muy pequeñas */
-            .monthly-payment .amount {
-                font-size: 1.5em;
-                line-height: 1.3;
-            }
-
-            table {
-                font-size: 0.8em;
-                min-width: 450px;
-            }
-
-            th,
-            td {
-                padding: 8px 6px;
-            }
-
-            .btn-download {
-                width: 100%;
-                margin: 5px 0;
-                justify-content: center;
-            }
-
-            .condition-section {
-                padding: 15px;
-            }
-
-            .interest-section {
-                padding: 15px;
-            }
+            .header h1 { font-size: 1.6em; } .form-container { padding: 15px; } .results { padding: 15px; }
+            .result-item { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .result-label { margin-bottom: 5px; font-size: 0.9em; } .result-value { font-size: 1em; }
+            .monthly-payment .amount { font-size: 1.5em; line-height: 1.3; }
+            table { font-size: 0.8em; min-width: 520px; } th, td { padding: 8px 6px; }
+            .btn-download { width: 100%; margin: 5px 0; justify-content: center; }
+            .condition-section { padding: 15px; } .interest-section { padding: 15px; }
         }
-
-        /* Ajustes para pantallas extra pequeñas */
         @media (max-width: 360px) {
-            .monthly-payment .amount {
-                font-size: 1.3em;
-            }
-
-            .header h1 {
-                font-size: 1.4em;
-            }
-
-            input[type="number"],
-            input[type="text"],
-            select,
-            textarea {
-                padding: 10px;
-            }
-
-            .currency+input {
-                padding-left: 40px;
-            }
+            .monthly-payment .amount { font-size: 1.3em; } .header h1 { font-size: 1.4em; }
+            input[type="number"], input[type="text"], input[type="date"], select, textarea { padding: 10px; }
+            .currency+input { padding-left: 40px; }
         }
     </style>
 </head>
@@ -603,6 +169,12 @@
                     </div>
                 </div>
 
+                <!-- NUEVO: Fecha de generación del cálculo -->
+                <div class="form-group">
+                    <label for="generationDate">Fecha de generación del cálculo</label>
+                    <input type="date" id="generationDate" required>
+                </div>
+
                 <button type="submit" class="btn-calculate">💰 Calcular Cuotas</button>
                 <button type="button" class="btn-clear" onclick="clearForm()">🗑️ Limpiar</button>
             </form>
@@ -672,14 +244,14 @@
                         <thead>
                             <tr>
                                 <th>Mes</th>
+                                <th>Fecha de pago</th>
                                 <th>Cuota</th>
                                 <th>Capital</th>
                                 <th>Interés</th>
                                 <th>Saldo</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody">
-                        </tbody>
+                        <tbody id="tableBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -688,6 +260,30 @@
 
     <script>
         let calculationData = {};
+        let lastSchedule = []; // guardamos el plan real para exportaciones
+
+        // ===== Utilidades de fecha =====
+        function pad(n) { return String(n).padStart(2, '0'); }
+        function toLocalISODate(d) {
+            const y = d.getFullYear();
+            const m = pad(d.getMonth() + 1);
+            const day = pad(d.getDate());
+            return `${y}-${m}-${day}`;
+        }
+        function addMonthsKeepingDay(date, monthsToAdd) {
+            const d = new Date(date.getTime());
+            const targetMonthIndex = d.getMonth() + monthsToAdd;
+            const desiredDay = d.getDate();
+            const tmp = new Date(d.getFullYear(), d.getMonth(), 1);
+            tmp.setMonth(targetMonthIndex + 1, 0);
+            const lastDay = tmp.getDate();
+            const day = Math.min(desiredDay, lastDay);
+            return new Date(tmp.getFullYear(), tmp.getMonth(), day);
+        }
+
+        // --- helpers de redondeo ---
+        const to2 = (x) => Math.round((x + Number.EPSILON) * 100) / 100;
+        const sum = (arr, key) => arr.reduce((a, r) => a + (key ? r[key] : r), 0);
 
         // Formatear números como moneda
         function formatCurrency(amount) {
@@ -697,8 +293,6 @@
                 minimumFractionDigits: 2
             }).format(amount).replace('HNL', 'Lps');
         }
-
-        // Formatear números sin símbolo de moneda
         function formatNumber(number) {
             return new Intl.NumberFormat('es-HN', {
                 minimumFractionDigits: 2,
@@ -726,6 +320,46 @@
             }
         }
 
+        // Construye plan con cuota entera y última ajustada
+        function buildScheduleWithIntegerPayment(principal, months, monthlyRate, cuotaEntera, startDate) {
+            let balance = to2(principal);
+            const plan = [];
+
+            for (let m = 1; m <= months && balance > 0; m++) {
+                const interes = to2(balance * monthlyRate);
+                let pago = cuotaEntera;
+
+                const necesarioParaCerrar = to2(balance + interes);
+                const quedanMeses = (m < months);
+
+                if (!quedanMeses || pago > necesarioParaCerrar) {
+                    pago = necesarioParaCerrar;
+                }
+
+                let capital = to2(pago - interes);
+                if (capital > balance) {
+                    capital = balance;
+                    pago = to2(capital + interes);
+                }
+
+                balance = to2(balance - capital);
+
+                const fechaPago = addMonthsKeepingDay(startDate, m); // primera cuota: mes siguiente
+                plan.push({
+                    mes: m,
+                    fechaPago,
+                    cuota: pago,
+                    capital,
+                    interes,
+                    saldo: balance
+                });
+
+                if (balance <= 0.000001) break;
+            }
+
+            return plan;
+        }
+
         // Manejar envío del formulario
         document.getElementById('calculatorForm').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -740,30 +374,30 @@
             const includeInterest = document.getElementById('includeInterest').checked;
             const interestRate = parseFloat(document.getElementById('interestRate').value) || 0;
 
+            const genDateInput = document.getElementById('generationDate').value;
+            if (!genDateInput) { alert('Por favor seleccione la fecha de generación.'); return; }
+            const generationDate = new Date(genDateInput + 'T00:00:00');
+
             // Validaciones
             let isValid = true;
-
             isValid &= validateInput(
                 document.getElementById('pricePerMeter'),
                 document.getElementById('priceError'),
                 pricePerMeter <= 0,
                 'El precio por metro cuadrado debe ser mayor a 0'
             );
-
             isValid &= validateInput(
                 document.getElementById('squareMeters'),
                 document.getElementById('metersError'),
                 squareMeters <= 0,
                 'Los metros cuadrados deben ser mayor a 0'
             );
-
             isValid &= validateInput(
                 document.getElementById('years'),
                 document.getElementById('yearsError'),
                 years < 1 || years > 30,
                 'El tiempo debe estar entre 1 y 30 años'
             );
-
             if (!isValid) return;
 
             // Cálculos
@@ -772,33 +406,38 @@
 
             // Aplicar condición especial
             if (conditionValue > 0) {
-                if (conditionType === 'add') {
-                    totalPrice += conditionValue;
-                } else {
-                    totalPrice -= conditionValue;
-                }
+                if (conditionType === 'add') { totalPrice += conditionValue; }
+                else { totalPrice -= conditionValue; }
             }
 
             const financeAmount = totalPrice - downPayment;
             const months = years * 12;
-
             if (financeAmount <= 0) {
                 alert('La prima no puede ser mayor o igual al precio total del terreno');
                 return;
             }
 
-            let monthlyPayment;
-            let totalInterest = 0;
-            let grandTotal = financeAmount;
+            const monthlyRate = (includeInterest && interestRate > 0) ? (interestRate / 100 / 12) : 0;
 
-            if (includeInterest && interestRate > 0) {
-                const monthlyRate = interestRate / 100 / 12;
-                monthlyPayment = financeAmount * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
-                totalInterest = (monthlyPayment * months) - financeAmount;
-                grandTotal = financeAmount + totalInterest;
-            } else {
-                monthlyPayment = financeAmount / months;
-            }
+            // cuota teórica sin redondeo
+            let monthlyPaymentRaw = monthlyRate > 0
+                ? financeAmount * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
+                : financeAmount / months;
+
+            // cuota entera hacia arriba
+            const cuotaEntera = Math.ceil(monthlyPaymentRaw);
+
+            // plan real con última cuota ajustada
+            lastSchedule = buildScheduleWithIntegerPayment(
+                financeAmount, months, monthlyRate, cuotaEntera, generationDate
+            );
+
+            // totales exactos desde el plan
+            const interesesTot = to2(sum(lastSchedule, 'interes'));
+            const totalPagado = to2(sum(lastSchedule, 'cuota'));
+
+            const totalInterest = interesesTot;
+            const grandTotal = totalPagado;
 
             // Guardar datos para exportación
             calculationData = {
@@ -815,9 +454,12 @@
                 months,
                 includeInterest,
                 interestRate,
-                monthlyPayment,
+                monthlyPayment: cuotaEntera,  // mostramos la cuota entera
                 totalInterest,
-                grandTotal
+                grandTotal,
+                generationDate,
+                generationDateISO: toLocalISODate(generationDate),
+                generationDateLocale: generationDate.toLocaleDateString('es-HN')
             };
 
             // Mostrar resultados
@@ -825,7 +467,7 @@
             document.getElementById('totalPrice').textContent = formatCurrency(totalPrice);
             document.getElementById('downPaymentResult').textContent = formatCurrency(downPayment);
             document.getElementById('financeAmount').textContent = formatCurrency(financeAmount);
-            document.getElementById('monthlyPayment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('monthlyPayment').textContent = formatCurrency(cuotaEntera);
             document.getElementById('paymentPeriod').textContent = `por ${months} meses`;
 
             // Mostrar condición aplicada
@@ -862,72 +504,34 @@
                 document.getElementById('grandTotalRow').style.display = 'none';
             }
 
-            // Generar tabla de amortización
-            generateAmortizationTable(financeAmount, monthlyPayment, interestRate, includeInterest);
+            // Generar tabla de amortización (primeros 12 meses, desde plan real)
+            generateAmortizationTableFromSchedule(lastSchedule);
 
             // Mostrar resultados
             document.getElementById('results').classList.add('show');
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         });
 
-        function generateAmortizationTable(principal, monthlyPayment, annualRate, includeInterest) {
+        function generateAmortizationTableFromSchedule(schedule) {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
-
-            let balance = principal;
-            const monthlyRate = includeInterest ? (annualRate / 100 / 12) : 0;
-
-            for (let month = 1; month <= Math.min(12, Math.ceil(principal / monthlyPayment)); month++) {
-                const interestPayment = includeInterest ? balance * monthlyRate : 0;
-                const principalPayment = monthlyPayment - interestPayment;
-                balance = Math.max(0, balance - principalPayment);
-
-                const row = tableBody.insertRow();
-                row.innerHTML = `
-                    <td>${month}</td>
-                    <td>${formatCurrency(monthlyPayment)}</td>
-                    <td>${formatCurrency(principalPayment)}</td>
-                    <td>${formatCurrency(interestPayment)}</td>
-                    <td>${formatCurrency(balance)}</td>
+            const first12 = schedule.slice(0, 12);
+            for (const r of first12) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${r.mes}</td>
+                    <td>${r.fechaPago ? r.fechaPago.toLocaleDateString('es-HN') : '-'}</td>
+                    <td>${formatCurrency(r.cuota)}</td>
+                    <td>${formatCurrency(r.capital)}</td>
+                    <td>${formatCurrency(r.interes)}</td>
+                    <td>${formatCurrency(r.saldo)}</td>
                 `;
-
-                if (balance <= 0) break;
+                tableBody.appendChild(tr);
             }
-        }
-
-        function generateFullAmortizationTable(principal, monthlyPayment, annualRate, includeInterest, months) {
-            const amortizationData = [];
-            let balance = principal;
-            const monthlyRate = includeInterest ? (annualRate / 100 / 12) : 0;
-
-            for (let month = 1; month <= months && balance > 0; month++) {
-                const interestPayment = includeInterest ? balance * monthlyRate : 0;
-                let principalPayment = monthlyPayment - interestPayment;
-
-                // Ajustar último pago si es necesario
-                if (balance < principalPayment) {
-                    principalPayment = balance;
-                    monthlyPayment = principalPayment + interestPayment;
-                }
-
-                balance = Math.max(0, balance - principalPayment);
-
-                amortizationData.push({
-                    mes: month,
-                    cuota: monthlyPayment,
-                    capital: principalPayment,
-                    interes: interestPayment,
-                    saldo: balance
-                });
-
-                if (balance <= 0) break;
-            }
-
-            return amortizationData;
         }
 
         function downloadExcel() {
-            if (!calculationData.monthlyPayment) {
+            if (!calculationData.monthlyPayment || lastSchedule.length === 0) {
                 alert('Por favor realice el cálculo primero');
                 return;
             }
@@ -974,51 +578,47 @@
                 );
             }
 
+            // Totales desde el plan
+            const totalPagado = to2(sum(lastSchedule, 'cuota'));
             summaryData.push(
                 [''],
-                ['CUOTA MENSUAL:', `Lps ${formatNumber(calculationData.monthlyPayment)}`],
+                ['CUOTA MENSUAL (entera):', `Lps ${formatNumber(calculationData.monthlyPayment)}`],
+                ['Total Pagado:', `Lps ${formatNumber(totalPagado)}`],
                 [''],
-                ['Fecha de Generación:', new Date().toLocaleDateString('es-HN')]
+                ['Fecha de Generación:', calculationData.generationDateLocale]
             );
 
             const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
             XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
 
-            // Hoja 2: Tabla de Amortización Completa
-            const amortizationData = generateFullAmortizationTable(
-                calculationData.financeAmount,
-                calculationData.monthlyPayment,
-                calculationData.interestRate,
-                calculationData.includeInterest,
-                calculationData.months
-            );
-
+            // Hoja 2: Tabla de Amortización Completa (con Fecha de Pago)
             const tableData = [
                 ['TABLA DE AMORTIZACIÓN COMPLETA'],
                 [''],
-                ['Mes', 'Cuota Mensual', 'Pago a Capital', 'Pago de Interés', 'Saldo Pendiente']
+                ['Mes', 'Fecha de Pago', 'Cuota Mensual', 'Pago a Capital', 'Pago de Interés', 'Saldo Pendiente']
             ];
 
-            amortizationData.forEach(row => {
+            lastSchedule.forEach(r => {
                 tableData.push([
-                    row.mes,
-                    formatNumber(row.cuota),
-                    formatNumber(row.capital),
-                    formatNumber(row.interes),
-                    formatNumber(row.saldo)
+                    r.mes,
+                    r.fechaPago ? r.fechaPago.toLocaleDateString('es-HN') : '-',
+                    formatNumber(r.cuota),
+                    formatNumber(r.capital),
+                    formatNumber(r.interes),
+                    formatNumber(r.saldo)
                 ]);
             });
 
             const ws2 = XLSX.utils.aoa_to_sheet(tableData);
             XLSX.utils.book_append_sheet(wb, ws2, 'Amortización');
 
-            // Descargar archivo
-            const fileName = `Financiamiento_Terreno_${new Date().toISOString().split('T')[0]}.xlsx`;
+            // Descargar archivo (usa fecha ingresada)
+            const fileName = `Financiamiento_Terreno_${calculationData.generationDateISO}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
 
         function downloadPDF() {
-            if (!calculationData || !calculationData.monthlyPayment) {
+            if (!calculationData || !calculationData.monthlyPayment || lastSchedule.length === 0) {
                 alert('Por favor realice el cálculo primero');
                 return;
             }
@@ -1029,7 +629,6 @@
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
 
-            // Utilidades
             const addHeader = (title) => {
                 doc.setFillColor(46, 62, 80);
                 doc.rect(0, 0, pageWidth, 60, 'F');
@@ -1050,25 +649,15 @@
                 doc.setTextColor(0, 0, 0);
             };
 
-            const addSectionTitle = (text, y) => {
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(13);
-                doc.text(text, margin, y);
-                doc.setFont('helvetica', 'normal');
-            };
-
-            
-            // Página 1: Resumen (Una sola columna)
+            // Página 1: Resumen
             addHeader('Resumen');
             let cursorY = 90;
 
-            // Título
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(18);
             doc.text('Resumen del Financiamiento', margin, cursorY);
             cursorY += 25;
 
-            // Función para agregar key-value en una columna
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
 
@@ -1080,12 +669,10 @@
                 cursorY += 18;
             };
 
-            // Datos principales
             addKV('Precio por m²:', `Lps ${formatNumber(calculationData.pricePerMeter)}`);
             addKV('Metros cuadrados:', `${formatNumber(calculationData.squareMeters)}`);
             addKV('Precio base:', `Lps ${formatNumber(calculationData.basePrice)}`);
 
-            // Condición especial
             let conditionStr = 'N/A';
             if (calculationData.conditionValue > 0 && calculationData.conditionDescription) {
                 const sign = calculationData.conditionType === 'add' ? '+' : '-';
@@ -1098,14 +685,12 @@
             addKV('Monto a financiar:', `Lps ${formatNumber(calculationData.financeAmount)}`);
             addKV('Plazo:', `${calculationData.years} años (${calculationData.months} meses)`);
 
-            // Intereses si aplica
             if (calculationData.includeInterest && calculationData.interestRate > 0) {
                 addKV('Tasa de interés anual:', `${calculationData.interestRate}%`);
                 addKV('Intereses totales:', `Lps ${formatNumber(calculationData.totalInterest)}`);
                 addKV('Total a pagar:', `Lps ${formatNumber(calculationData.grandTotal)}`);
             }
 
-            // Espacio y cuota mensual destacada
             cursorY += 15;
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(14);
@@ -1118,16 +703,15 @@
             doc.text(`Lps ${formatNumber(calculationData.monthlyPayment)}`, margin, cursorY);
             doc.setTextColor(0, 0, 0);
 
-            // Periodo de pagos debajo
             cursorY += 20;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
             doc.text(`por ${calculationData.months} meses`, margin, cursorY);
 
-            // Fecha al pie
+            // Fecha de generación (según ingresada)
             doc.setFontSize(10);
             doc.setTextColor(120);
-            doc.text(`Fecha de generación: ${new Date().toLocaleDateString('es-HN')}`, margin, pageHeight - 40);
+            doc.text(`Fecha de generación: ${calculationData.generationDateLocale}`, margin, pageHeight - 40);
             doc.setTextColor(0, 0, 0);
 
             addFooter();
@@ -1136,17 +720,10 @@
             doc.addPage();
             addHeader('Tabla de amortización');
 
-            const amortizationData = generateFullAmortizationTable(
-                calculationData.financeAmount,
-                calculationData.monthlyPayment,
-                calculationData.interestRate,
-                calculationData.includeInterest,
-                calculationData.months
-            );
-
-            const head = [['Mes', 'Cuota', 'Capital', 'Interés', 'Saldo']];
-            const body = amortizationData.map(r => ([
+            const head = [['Mes', 'Fecha de pago', 'Cuota', 'Capital', 'Interés', 'Saldo']];
+            const body = lastSchedule.map(r => ([
                 r.mes,
+                r.fechaPago ? r.fechaPago.toLocaleDateString('es-HN') : '-',
                 `Lps ${formatNumber(r.cuota)}`,
                 `Lps ${formatNumber(r.capital)}`,
                 `Lps ${formatNumber(r.interes)}`,
@@ -1162,10 +739,11 @@
                 headStyles: { fillColor: [44, 62, 80], halign: 'center' },
                 columnStyles: {
                     0: { halign: 'center' },
-                    1: { halign: 'right' },
+                    1: { halign: 'center' },
                     2: { halign: 'right' },
                     3: { halign: 'right' },
                     4: { halign: 'right' },
+                    5: { halign: 'right' },
                 },
                 didDrawPage: () => {
                     addHeader('Tabla de amortización');
@@ -1173,7 +751,7 @@
                 }
             });
 
-            const fileName = `Financiamiento_Terreno_${new Date().toISOString().split('T')[0]}.pdf`;
+            const fileName = `Financiamiento_Terreno_${calculationData.generationDateISO}.pdf`;
             doc.save(fileName);
         }
 
@@ -1182,18 +760,25 @@
             document.getElementById('results').classList.remove('show');
             document.getElementById('interestGroup').style.display = 'none';
             calculationData = {};
+            lastSchedule = [];
 
             // Limpiar estilos de error
-            const inputs = document.querySelectorAll('input[type="number"], input[type="text"], textarea');
+            const inputs = document.querySelectorAll('input[type="number"], input[type="text"], input[type="date"], textarea');
             const errors = document.querySelectorAll('.error');
 
             inputs.forEach(input => input.style.borderColor = '#e0e0e0');
             errors.forEach(error => error.style.display = 'none');
+
+            // Volver a setear hoy por defecto en fecha
+            const genDate = document.getElementById('generationDate');
+            if (genDate) genDate.value = toLocalISODate(new Date());
         }
 
-        // Agregar efectos de entrada suaves
+        // Efectos + setear fecha por defecto a hoy (local)
         window.addEventListener('load', function () {
             document.querySelector('.container').style.animation = 'slideIn 0.8s ease';
+            const genDate = document.getElementById('generationDate');
+            if (genDate && !genDate.value) genDate.value = toLocalISODate(new Date());
         });
     </script>
 </body>
