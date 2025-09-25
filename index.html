@@ -33,6 +33,7 @@
         .input-group { position: relative; }
         .currency { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-weight: 600; }
         .currency+input { padding-left: 50px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .condition-section { background: #e8f5e8; padding: 25px; border-radius: 10px; border-left: 4px solid #27ae60; margin: 25px 0; }
         .condition-section h3 { color: #27ae60; margin-bottom: 20px; font-size: 1.3em; }
         .condition-row { display: grid; grid-template-columns: 1fr 150px 120px; gap: 15px; align-items: end; }
@@ -73,6 +74,7 @@
             label { font-size: 1em; }
             input[type="number"], input[type="text"], input[type="date"], select, textarea { font-size: 1em; padding: 12px; }
             .currency+input { padding-left: 45px; } .condition-row { grid-template-columns: 1fr; gap: 10px; }
+            .two-col { grid-template-columns: 1fr; }
             .btn-calculate { font-size: 1.1em; padding: 16px; } .btn-clear, .btn-download { font-size: 1em; padding: 12px 20px; }
             .results { padding: 20px; } .result-item { padding: 12px 0; }
             .result-label { font-size: 0.95em; } .result-value { font-size: 1.1em; }
@@ -107,13 +109,25 @@
 
         <div class="form-container">
             <form id="calculatorForm">
-                <div class="form-group">
-                    <label for="pricePerMeter">Precio por Metro Cuadrado (Lps)</label>
-                    <div class="input-group">
-                        <span class="currency">Lps</span>
-                        <input type="number" id="pricePerMeter" step="0.01" min="0" required>
+                <div class="two-col">
+                    <div class="form-group">
+                        <label for="pricePerMeter">Precio por Metro Cuadrado (Lps) <small style="font-weight:400;color:#666">(opcional)</small></label>
+                        <div class="input-group">
+                            <span class="currency">Lps</span>
+                            <input type="number" id="pricePerMeter" step="0.01" min="0" placeholder="Ej. 1,200.00">
+                        </div>
+                        <div class="error" id="priceError"></div>
                     </div>
-                    <div class="error" id="priceError">Por favor ingrese un precio válido</div>
+
+                    <!-- NUEVO: Precio del Lote (opcional) -->
+                    <div class="form-group">
+                        <label for="lotPrice">Precio del Lote (Lps) <small style="font-weight:400;color:#666">(opcional si usa precio por m²)</small></label>
+                        <div class="input-group">
+                            <span class="currency">Lps</span>
+                            <input type="number" id="lotPrice" step="0.01" min="0" placeholder="Ej. 250,000.00">
+                        </div>
+                        <div class="error" id="lotPriceError"></div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -127,8 +141,7 @@
                     <div class="condition-row">
                         <div class="form-group">
                             <label for="conditionDescription">Descripción de la Condición</label>
-                            <textarea id="conditionDescription"
-                                placeholder="Ej: Lote esquinero, Vista al parque, Descuento por pronto pago, etc."></textarea>
+                            <textarea id="conditionDescription" placeholder="Ej: Lote esquinero, Vista al parque, Descuento por pronto pago, etc."></textarea>
                         </div>
                         <div class="form-group">
                             <label for="conditionValue">Valor (Lps)</label>
@@ -169,7 +182,7 @@
                     </div>
                 </div>
 
-                <!-- NUEVO: Fecha de generación del cálculo -->
+                <!-- Fecha de generación del cálculo -->
                 <div class="form-group">
                     <label for="generationDate">Fecha de generación del cálculo</label>
                     <input type="date" id="generationDate" required>
@@ -184,6 +197,16 @@
 
                 <div id="conditionApplied" class="condition-applied" style="display: none;">
                     <div class="condition-text" id="conditionText"></div>
+                </div>
+
+                <div class="result-item" id="pricePerM2Row" style="display:none;">
+                    <span class="result-label">Precio por m²:</span>
+                    <span class="result-value" id="pricePerM2Value">Lps 0.00</span>
+                </div>
+
+                <div class="result-item" id="lotPriceRow" style="display:none;">
+                    <span class="result-label">Precio del lote (ingresado):</span>
+                    <span class="result-value" id="lotPriceValue">Lps 0.00</span>
                 </div>
 
                 <div class="result-item">
@@ -260,14 +283,12 @@
 
     <script>
         let calculationData = {};
-        let lastSchedule = []; // guardamos el plan real para exportaciones
+        let lastSchedule = [];
 
         // ===== Utilidades de fecha =====
         function pad(n) { return String(n).padStart(2, '0'); }
         function toLocalISODate(d) {
-            const y = d.getFullYear();
-            const m = pad(d.getMonth() + 1);
-            const day = pad(d.getDate());
+            const y = d.getFullYear(), m = pad(d.getMonth() + 1), day = pad(d.getDate());
             return `${y}-${m}-${day}`;
         }
         function addMonthsKeepingDay(date, monthsToAdd) {
@@ -285,28 +306,21 @@
         const to2 = (x) => Math.round((x + Number.EPSILON) * 100) / 100;
         const sum = (arr, key) => arr.reduce((a, r) => a + (key ? r[key] : r), 0);
 
-        // Formatear números como moneda
+        // Formateo
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('es-HN', {
-                style: 'currency',
-                currency: 'HNL',
-                minimumFractionDigits: 2
-            }).format(amount).replace('HNL', 'Lps');
+            return new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL', minimumFractionDigits: 2 })
+                   .format(amount).replace('HNL', 'Lps');
         }
         function formatNumber(number) {
-            return new Intl.NumberFormat('es-HN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(number);
+            return new Intl.NumberFormat('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
         }
 
-        // Toggle para mostrar/ocultar campo de interés
+        // Toggle interés
         document.getElementById('includeInterest').addEventListener('change', function () {
-            const interestGroup = document.getElementById('interestGroup');
-            interestGroup.style.display = this.checked ? 'block' : 'none';
+            document.getElementById('interestGroup').style.display = this.checked ? 'block' : 'none';
         });
 
-        // Validación en tiempo real
+        // Validación genérica
         function validateInput(input, errorElement, condition, message) {
             if (condition) {
                 input.style.borderColor = '#e74c3c';
@@ -320,51 +334,32 @@
             }
         }
 
-        // Construye plan con cuota entera y última ajustada
+        // Plan con cuota entera y última ajustada
         function buildScheduleWithIntegerPayment(principal, months, monthlyRate, cuotaEntera, startDate) {
             let balance = to2(principal);
             const plan = [];
-
             for (let m = 1; m <= months && balance > 0; m++) {
                 const interes = to2(balance * monthlyRate);
                 let pago = cuotaEntera;
-
                 const necesarioParaCerrar = to2(balance + interes);
                 const quedanMeses = (m < months);
-
-                if (!quedanMeses || pago > necesarioParaCerrar) {
-                    pago = necesarioParaCerrar;
-                }
-
+                if (!quedanMeses || pago > necesarioParaCerrar) pago = necesarioParaCerrar;
                 let capital = to2(pago - interes);
-                if (capital > balance) {
-                    capital = balance;
-                    pago = to2(capital + interes);
-                }
-
+                if (capital > balance) { capital = balance; pago = to2(capital + interes); }
                 balance = to2(balance - capital);
-
                 const fechaPago = addMonthsKeepingDay(startDate, m); // primera cuota: mes siguiente
-                plan.push({
-                    mes: m,
-                    fechaPago,
-                    cuota: pago,
-                    capital,
-                    interes,
-                    saldo: balance
-                });
-
+                plan.push({ mes: m, fechaPago, cuota: pago, capital, interes, saldo: balance });
                 if (balance <= 0.000001) break;
             }
-
             return plan;
         }
 
-        // Manejar envío del formulario
+        // Envío del formulario
         document.getElementById('calculatorForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
             const pricePerMeter = parseFloat(document.getElementById('pricePerMeter').value) || 0;
+            const lotPrice = parseFloat(document.getElementById('lotPrice').value) || 0;
             const squareMeters = parseFloat(document.getElementById('squareMeters').value) || 0;
             const conditionDescription = document.getElementById('conditionDescription').value.trim();
             const conditionValue = parseFloat(document.getElementById('conditionValue').value) || 0;
@@ -380,12 +375,30 @@
 
             // Validaciones
             let isValid = true;
-            isValid &= validateInput(
-                document.getElementById('pricePerMeter'),
-                document.getElementById('priceError'),
-                pricePerMeter <= 0,
-                'El precio por metro cuadrado debe ser mayor a 0'
-            );
+
+            // Al menos una forma de precio (por m² o precio de lote)
+            const priceByM2Provided = pricePerMeter > 0;
+            const lotPriceProvided = lotPrice > 0;
+
+            if (!priceByM2Provided && !lotPriceProvided) {
+                isValid &= validateInput(
+                    document.getElementById('pricePerMeter'),
+                    document.getElementById('priceError'),
+                    true,
+                    'Ingrese Precio por m² o el Precio del Lote'
+                );
+                isValid &= validateInput(
+                    document.getElementById('lotPrice'),
+                    document.getElementById('lotPriceError'),
+                    true,
+                    'Ingrese Precio por m² o el Precio del Lote'
+                );
+            } else {
+                // limpiar errores si alguno estaba marcado
+                validateInput(document.getElementById('pricePerMeter'), document.getElementById('priceError'), false, '');
+                validateInput(document.getElementById('lotPrice'), document.getElementById('lotPriceError'), false, '');
+            }
+
             isValid &= validateInput(
                 document.getElementById('squareMeters'),
                 document.getElementById('metersError'),
@@ -400,14 +413,17 @@
             );
             if (!isValid) return;
 
-            // Cálculos
-            const basePrice = pricePerMeter * squareMeters;
-            let totalPrice = basePrice;
+            // Cálculo del precio base:
+            // - Si existe precio por m² => base = pricePerMeter * squareMeters
+            // - Si NO, usar Precio del Lote ingresado
+            const usedPerMeter = priceByM2Provided;
+            const basePrice = usedPerMeter ? (pricePerMeter * squareMeters) : lotPrice;
 
             // Aplicar condición especial
+            let totalPrice = basePrice;
             if (conditionValue > 0) {
-                if (conditionType === 'add') { totalPrice += conditionValue; }
-                else { totalPrice -= conditionValue; }
+                if (conditionType === 'add') totalPrice += conditionValue;
+                else totalPrice -= conditionValue;
             }
 
             const financeAmount = totalPrice - downPayment;
@@ -420,7 +436,7 @@
             const monthlyRate = (includeInterest && interestRate > 0) ? (interestRate / 100 / 12) : 0;
 
             // cuota teórica sin redondeo
-            let monthlyPaymentRaw = monthlyRate > 0
+            const monthlyPaymentRaw = monthlyRate > 0
                 ? financeAmount * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
                 : financeAmount / months;
 
@@ -436,12 +452,11 @@
             const interesesTot = to2(sum(lastSchedule, 'interes'));
             const totalPagado = to2(sum(lastSchedule, 'cuota'));
 
-            const totalInterest = interesesTot;
-            const grandTotal = totalPagado;
-
-            // Guardar datos para exportación
+            // Guardar datos
             calculationData = {
-                pricePerMeter,
+                usedPerMeter,           // bool
+                pricePerMeter,          // podría ser 0 si no se usó
+                lotPrice,               // podría ser 0 si no se usó
                 squareMeters,
                 basePrice,
                 conditionDescription,
@@ -454,15 +469,23 @@
                 months,
                 includeInterest,
                 interestRate,
-                monthlyPayment: cuotaEntera,  // mostramos la cuota entera
-                totalInterest,
-                grandTotal,
+                monthlyPayment: cuotaEntera,
+                totalInterest: interesesTot,
+                grandTotal: totalPagado,
                 generationDate,
                 generationDateISO: toLocalISODate(generationDate),
                 generationDateLocale: generationDate.toLocaleDateString('es-HN')
             };
 
-            // Mostrar resultados
+            // Mostrar resultados (filas condicionales)
+            document.getElementById('pricePerM2Row').style.display = usedPerMeter ? 'flex' : 'none';
+            document.getElementById('lotPriceRow').style.display   = usedPerMeter ? 'none' : 'flex';
+            if (usedPerMeter) {
+                document.getElementById('pricePerM2Value').textContent = formatCurrency(pricePerMeter);
+            } else {
+                document.getElementById('lotPriceValue').textContent = formatCurrency(lotPrice);
+            }
+
             document.getElementById('basePrice').textContent = formatCurrency(basePrice);
             document.getElementById('totalPrice').textContent = formatCurrency(totalPrice);
             document.getElementById('downPaymentResult').textContent = formatCurrency(downPayment);
@@ -472,22 +495,15 @@
 
             // Mostrar condición aplicada
             if (conditionValue > 0 && conditionDescription) {
-                const conditionApplied = document.getElementById('conditionApplied');
-                const conditionText = document.getElementById('conditionText');
-                const conditionRow = document.getElementById('conditionRow');
-                const conditionLabel = document.getElementById('conditionLabel');
-                const conditionAmount = document.getElementById('conditionAmount');
-
                 const action = conditionType === 'add' ? 'suma' : 'resta';
                 const sign = conditionType === 'add' ? '+' : '-';
-
-                conditionText.textContent = `${conditionDescription} (${action} ${formatCurrency(conditionValue)})`;
-                conditionLabel.textContent = conditionDescription + ':';
-                conditionAmount.textContent = `${sign} ${formatCurrency(conditionValue)}`;
-                conditionAmount.style.color = conditionType === 'add' ? '#e74c3c' : '#27ae60';
-
-                conditionApplied.style.display = 'block';
-                conditionRow.style.display = 'flex';
+                document.getElementById('conditionText').textContent = `${conditionDescription} (${action} ${formatCurrency(conditionValue)})`;
+                document.getElementById('conditionLabel').textContent = conditionDescription + ':';
+                const ca = document.getElementById('conditionAmount');
+                ca.textContent = `${sign} ${formatCurrency(conditionValue)}`;
+                ca.style.color = conditionType === 'add' ? '#e74c3c' : '#27ae60';
+                document.getElementById('conditionApplied').style.display = 'block';
+                document.getElementById('conditionRow').style.display = 'flex';
             } else {
                 document.getElementById('conditionApplied').style.display = 'none';
                 document.getElementById('conditionRow').style.display = 'none';
@@ -497,14 +513,14 @@
             if (includeInterest && interestRate > 0) {
                 document.getElementById('interestTotalRow').style.display = 'flex';
                 document.getElementById('grandTotalRow').style.display = 'flex';
-                document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
-                document.getElementById('grandTotal').textContent = formatCurrency(grandTotal);
+                document.getElementById('totalInterest').textContent = formatCurrency(interesesTot);
+                document.getElementById('grandTotal').textContent = formatCurrency(totalPagado);
             } else {
                 document.getElementById('interestTotalRow').style.display = 'none';
                 document.getElementById('grandTotalRow').style.display = 'none';
             }
 
-            // Generar tabla de amortización (primeros 12 meses, desde plan real)
+            // Tabla (primeros 12 meses)
             generateAmortizationTableFromSchedule(lastSchedule);
 
             // Mostrar resultados
@@ -536,17 +552,24 @@
                 return;
             }
 
-            // Crear libro de trabajo
             const wb = XLSX.utils.book_new();
 
-            // Hoja 1: Resumen del Financiamiento
+            // Hoja 1: Resumen
             const summaryData = [
                 ['RESUMEN DEL FINANCIAMIENTO DE TERRENO'],
                 [''],
-                ['Precio por Metro Cuadrado:', `Lps ${formatNumber(calculationData.pricePerMeter)}`],
+            ];
+
+            if (calculationData.usedPerMeter) {
+                summaryData.push(['Precio por Metro Cuadrado:', `Lps ${formatNumber(calculationData.pricePerMeter)}`]);
+            } else {
+                summaryData.push(['Precio del Lote (ingresado):', `Lps ${formatNumber(calculationData.lotPrice)}`]);
+            }
+
+            summaryData.push(
                 ['Metros Cuadrados:', formatNumber(calculationData.squareMeters)],
                 ['Precio Base del Terreno:', `Lps ${formatNumber(calculationData.basePrice)}`],
-            ];
+            );
 
             if (calculationData.conditionValue > 0 && calculationData.conditionDescription) {
                 const action = calculationData.conditionType === 'add' ? 'Suma' : 'Resta';
@@ -578,7 +601,6 @@
                 );
             }
 
-            // Totales desde el plan
             const totalPagado = to2(sum(lastSchedule, 'cuota'));
             summaryData.push(
                 [''],
@@ -591,13 +613,12 @@
             const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
             XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
 
-            // Hoja 2: Tabla de Amortización Completa (con Fecha de Pago)
+            // Hoja 2: Amortización
             const tableData = [
                 ['TABLA DE AMORTIZACIÓN COMPLETA'],
                 [''],
                 ['Mes', 'Fecha de Pago', 'Cuota Mensual', 'Pago a Capital', 'Pago de Interés', 'Saldo Pendiente']
             ];
-
             lastSchedule.forEach(r => {
                 tableData.push([
                     r.mes,
@@ -608,11 +629,9 @@
                     formatNumber(r.saldo)
                 ]);
             });
-
             const ws2 = XLSX.utils.aoa_to_sheet(tableData);
             XLSX.utils.book_append_sheet(wb, ws2, 'Amortización');
 
-            // Descargar archivo (usa fecha ingresada)
             const fileName = `Financiamiento_Terreno_${calculationData.generationDateISO}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
@@ -653,23 +672,22 @@
             addHeader('Resumen');
             let cursorY = 90;
 
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
             doc.text('Resumen del Financiamiento', margin, cursorY);
             cursorY += 25;
 
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(11);
-
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
             const addKV = (k, v) => {
-                doc.setFont('helvetica', 'bold');
-                doc.text(k, margin, cursorY);
-                doc.setFont('helvetica', 'normal');
-                doc.text(v, margin + 200, cursorY);
+                doc.setFont('helvetica', 'bold'); doc.text(k, margin, cursorY);
+                doc.setFont('helvetica', 'normal'); doc.text(v, margin + 200, cursorY);
                 cursorY += 18;
             };
 
-            addKV('Precio por m²:', `Lps ${formatNumber(calculationData.pricePerMeter)}`);
+            if (calculationData.usedPerMeter) {
+                addKV('Precio por m²:', `Lps ${formatNumber(calculationData.pricePerMeter)}`);
+            } else {
+                addKV('Precio del lote (ingresado):', `Lps ${formatNumber(calculationData.lotPrice)}`);
+            }
             addKV('Metros cuadrados:', `${formatNumber(calculationData.squareMeters)}`);
             addKV('Precio base:', `Lps ${formatNumber(calculationData.basePrice)}`);
 
@@ -692,31 +710,27 @@
             }
 
             cursorY += 15;
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
             doc.text('Cuota Mensual', margin, cursorY);
-
             cursorY += 30;
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(22);
+
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
             doc.setTextColor(39, 174, 96);
             doc.text(`Lps ${formatNumber(calculationData.monthlyPayment)}`, margin, cursorY);
             doc.setTextColor(0, 0, 0);
 
             cursorY += 20;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
             doc.text(`por ${calculationData.months} meses`, margin, cursorY);
 
-            // Fecha de generación (según ingresada)
-            doc.setFontSize(10);
-            doc.setTextColor(120);
+            // Fecha de generación en pie
+            doc.setFontSize(10); doc.setTextColor(120);
             doc.text(`Fecha de generación: ${calculationData.generationDateLocale}`, margin, pageHeight - 40);
             doc.setTextColor(0, 0, 0);
 
             addFooter();
 
-            // Página 2+: Tabla de amortización completa
+            // Página 2+: Amortización
             doc.addPage();
             addHeader('Tabla de amortización');
 
@@ -731,9 +745,7 @@
             ]));
 
             doc.autoTable({
-                head,
-                body,
-                startY: 90,
+                head, body, startY: 90,
                 margin: { left: margin, right: margin },
                 styles: { font: 'helvetica', fontSize: 10, halign: 'right' },
                 headStyles: { fillColor: [44, 62, 80], halign: 'center' },
@@ -745,10 +757,7 @@
                     4: { halign: 'right' },
                     5: { halign: 'right' },
                 },
-                didDrawPage: () => {
-                    addHeader('Tabla de amortización');
-                    addFooter();
-                }
+                didDrawPage: () => { addHeader('Tabla de amortización'); addFooter(); }
             });
 
             const fileName = `Financiamiento_Terreno_${calculationData.generationDateISO}.pdf`;
@@ -762,19 +771,18 @@
             calculationData = {};
             lastSchedule = [];
 
-            // Limpiar estilos de error
+            // Limpiar errores
             const inputs = document.querySelectorAll('input[type="number"], input[type="text"], input[type="date"], textarea');
             const errors = document.querySelectorAll('.error');
+            inputs.forEach(i => i.style.borderColor = '#e0e0e0');
+            errors.forEach(e => e.style.display = 'none');
 
-            inputs.forEach(input => input.style.borderColor = '#e0e0e0');
-            errors.forEach(error => error.style.display = 'none');
-
-            // Volver a setear hoy por defecto en fecha
+            // setear hoy por defecto
             const genDate = document.getElementById('generationDate');
             if (genDate) genDate.value = toLocalISODate(new Date());
         }
 
-        // Efectos + setear fecha por defecto a hoy (local)
+        // Efecto + fecha por defecto
         window.addEventListener('load', function () {
             document.querySelector('.container').style.animation = 'slideIn 0.8s ease';
             const genDate = document.getElementById('generationDate');
